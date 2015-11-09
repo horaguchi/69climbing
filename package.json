@@ -1,0 +1,28 @@
+{
+  "name": "69climbing",
+  "version": "1.0.0",
+  "description": "69climbing",
+  "keywords": [
+    "7drl",
+    "procjam2015"
+  ],
+  "homepage": "https://github.com/horaguchi/69climbing",
+  "bugs": {
+    "url": "https://github.com/horaguchi/69climbing/issues"
+  },
+  "license": "MIT",
+  "author": "Koji Horaguchi <koji.horaguchi@gmail.com> (http://horaguchi.github.io/)",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:horaguchi/69climbing.git"
+  },
+  "scripts": {
+    "preinstall": " browserify 69climbing-html5.js -s SixtyNineClimbing -o www/js/69climbing-html5.browserify.js",
+    "install": "cordova build browser",
+    "start": "cordova run browser"
+  },
+  "devDependencies": {
+    "browserify": "12.0.1",
+    "cordova": "5.4.0"
+  }
+}
