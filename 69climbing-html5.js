@@ -1,6 +1,4 @@
 var SixtyNineClimbing = require('./69climbing');
-var perlin = require('./perlin');
-perlin.noise.seed(Math.random());
 
 // for node.js, not for CommonJS
 module.exports = SixtyNineClimbing;
@@ -17,9 +15,6 @@ SixtyNineClimbing.prototype.initialCanvas = function (element) {
     var rect = e.target.getBoundingClientRect();
     var point = game.getPointFromHTML(e.changedTouches[0].clientX - rect.left, e.changedTouches[0].clientY - rect.top, 'start');
     if (game.point(point[0], point[1])) {
-      if (game.state === SixtyNineClimbing.STATE_ANIMATION && !game.animationInterval) {
-        game.startAnimation();
-      }
       game.draw();
     }
     game.touchNow = point;
@@ -33,9 +28,6 @@ SixtyNineClimbing.prototype.initialCanvas = function (element) {
       // nothing
 
     } else if (game.point(point[0], point[1])) {
-      if (game.state === SixtyNineClimbing.STATE_ANIMATION && !game.animationInterval) {
-        game.startAnimation();
-      }
       game.draw();
     }
     game.touchNow = point;
@@ -46,9 +38,6 @@ SixtyNineClimbing.prototype.initialCanvas = function (element) {
     var rect = e.target.getBoundingClientRect();
     var point = game.getPointFromHTML(e.clientX - rect.left, e.clientY - rect.top);
     if (game.point(point[0], point[1])) {
-      if (game.state === SixtyNineClimbing.STATE_ANIMATION && !game.animationInterval) {
-        game.startAnimation();
-      }
       game.draw();
     }
   });
@@ -227,16 +216,3 @@ SixtyNineClimbing.prototype.draw = function (initial) {
   }
   this.oldScreen = screen.map(function (row) { return row.concat(); });
 };
-
-SixtyNineClimbing.prototype.startAnimation = function () {
-  var game = this;
-  this.animationInterval = setInterval(function () {
-    game.point(0, 0);
-    game.draw();
-    if (game.state !== SixtyNineClimbing.STATE_ANIMATION) {
-      clearInterval(game.animationInterval);
-      game.animationInterval = null;
-    }
-  }, 10);
-};
-

@@ -1,7 +1,5 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.SixtyNineClimbing = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 var SixtyNineClimbing = require('./69climbing');
-var perlin = require('./perlin');
-perlin.noise.seed(Math.random());
 
 // for node.js, not for CommonJS
 module.exports = SixtyNineClimbing;
@@ -18,9 +16,6 @@ SixtyNineClimbing.prototype.initialCanvas = function (element) {
     var rect = e.target.getBoundingClientRect();
     var point = game.getPointFromHTML(e.changedTouches[0].clientX - rect.left, e.changedTouches[0].clientY - rect.top, 'start');
     if (game.point(point[0], point[1])) {
-      if (game.state === SixtyNineClimbing.STATE_ANIMATION && !game.animationInterval) {
-        game.startAnimation();
-      }
       game.draw();
     }
     game.touchNow = point;
@@ -34,9 +29,6 @@ SixtyNineClimbing.prototype.initialCanvas = function (element) {
       // nothing
 
     } else if (game.point(point[0], point[1])) {
-      if (game.state === SixtyNineClimbing.STATE_ANIMATION && !game.animationInterval) {
-        game.startAnimation();
-      }
       game.draw();
     }
     game.touchNow = point;
@@ -47,9 +39,6 @@ SixtyNineClimbing.prototype.initialCanvas = function (element) {
     var rect = e.target.getBoundingClientRect();
     var point = game.getPointFromHTML(e.clientX - rect.left, e.clientY - rect.top);
     if (game.point(point[0], point[1])) {
-      if (game.state === SixtyNineClimbing.STATE_ANIMATION && !game.animationInterval) {
-        game.startAnimation();
-      }
       game.draw();
     }
   });
@@ -229,86 +218,44 @@ SixtyNineClimbing.prototype.draw = function (initial) {
   this.oldScreen = screen.map(function (row) { return row.concat(); });
 };
 
-SixtyNineClimbing.prototype.startAnimation = function () {
-  var game = this;
-  this.animationInterval = setInterval(function () {
-    game.point(0, 0);
-    game.draw();
-    if (game.state !== SixtyNineClimbing.STATE_ANIMATION) {
-      clearInterval(game.animationInterval);
-      game.animationInterval = null;
-    }
-  }, 10);
-};
+},{"./69climbing":2}],2:[function(require,module,exports){
+var perlin = require('./perlin');
+perlin.noise.seed(Math.random());
 
-
-},{"./69climbing":2,"./perlin":3}],2:[function(require,module,exports){
 var SixtyNineClimbing = function () {
-	
+  this.i = 0;
+  var screen = this.screen = [];
+  for (var y = 0; y < 48; ++y) {
+    var row = [];
+    for (var x = 0; x < 54; ++x) {
+      row.push('.');
+    }
+    screen.push(row);
+  }
 };
 // for node.js, not for CommonJS
 module.exports = SixtyNineClimbing;
 
-SixtyNineClimbing.prototype.getScreen = function () {
-  return [
-    '                                                      '.split(''),
-    '                                                      '.split(''),
-    '                                                      '.split(''),
-    '   ................................................   '.split(''),
-    '   ................................................   '.split(''),
-    '   ................................................   '.split(''),
-    '   ...      ...      ...      ...      ...      ...   '.split(''),
-    '   ...      ...      ...      ...      ...      ...   '.split(''),
-    '   ...      ...      ...      ...      ...      ...   '.split(''),
-    '   ...      ...      ...      ...      ...      ...   '.split(''),
-    '   ...      ...      ...      ...      ...      ...   '.split(''),
-    '   ...      ...      ...      ...      ...      ...   '.split(''),
-    '   ................................................   '.split(''),
-    '   ................................................   '.split(''),
-    '   ................................................   '.split(''),
-    '   ...      ...      ...      ...      ...      ...   '.split(''),
-    '   ...      ...      ...      ...      ...      ...   '.split(''),
-    '   ...      ...      ...      ...      ...      ...   '.split(''),
-    '   ...      ...      ...      ...      ...      ...   '.split(''),
-    '   ...      ...      ...      ...      ...      ...   '.split(''),
-    '   ...      ...      ...      ...      ...      ...   '.split(''),
-    '   ................................................   '.split(''),
-    '   ................................................   '.split(''),
-    '   ................................................   '.split(''),
-    '                                                      '.split(''),
-    '                                                      '.split(''),
-    '                                                      '.split(''),
-    '                                                      '.split(''),
-    '                                                      '.split(''),
-    '                                                      '.split(''),
-    '   ................................................   '.split(''),
-    '   ................................................   '.split(''),
-    '   ................................................   '.split(''),
-    '   ...      ...      ...      ...      ...      ...   '.split(''),
-    '   ...      ...      ...      ...      ...      ...   '.split(''),
-    '   ...      ...      ...      ...      ...      ...   '.split(''),
-    '   ...      ...      ...      ...      ...      ...   '.split(''),
-    '   ...      ...      ...      ...      ...      ...   '.split(''),
-    '   ...      ...      ...      ...      ...      ...   '.split(''),
-    '   ................................................   '.split(''),
-    '   ................................................   '.split(''),
-    '   ................................................   '.split(''),
-    '   ...      ...      ...      ...      ...      ...   '.split(''),
-    '   ...      ...      ...      ...      ...      ...   '.split(''),
-    '   ...      ...      ...      ...      ...      ...   '.split(''),
-    '   ...      ...      ...      ...      ...      ...   '.split(''),
-    '   ...      ...      ...      ...      ...      ...   '.split(''),
-    '   ...      ...      ...      ...      ...      ...   '.split(''),
-    '   ................................................   '.split(''),
-    '   ................................................   '.split(''),
-    '   ................................................   '.split(''),
-    '                                                      '.split(''),
-    '                                                      '.split(''),
-    '                                                      '.split('')
-  ];
+SixtyNineClimbing.prototype.createScreen = function () {
+  var i = this.i++;
+  var screen = this.screen;
+  for (var y = 0; y < 48; ++y) {
+    for (var x = 0; x < 54; ++x) {
+      screen[y][x] = String(i % 10);
+    }
+  }
 };
 
-},{}],3:[function(require,module,exports){
+SixtyNineClimbing.prototype.getScreen = function () {
+  return this.screen;
+};
+
+SixtyNineClimbing.prototype.point = function () {
+  this.createScreen();
+  return true;
+};
+
+},{"./perlin":3}],3:[function(require,module,exports){
 /*
  * A speed-improved perlin and simplex noise algorithms for 2D.
  *
