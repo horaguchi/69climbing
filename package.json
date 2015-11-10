@@ -17,8 +17,7 @@
     "url": "git@github.com:horaguchi/69climbing.git"
   },
   "scripts": {
-    "preinstall": " browserify 69climbing-html5.js -s SixtyNineClimbing -o www/js/69climbing-html5.browserify.js",
-    "install": "cordova build browser",
+    "prestart": "browserify 69climbing-html5.js -s SixtyNineClimbing -o www/js/69climbing-html5.browserify.js && cordova build browser",
     "start": "cordova run browser"
   },
   "devDependencies": {

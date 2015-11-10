@@ -1,7 +1,8 @@
 var perlin = require('./perlin');
 
 var SixtyNineClimbing = function () {
-  this.i = 0;
+  perlin.noise.seed(Math.random());
+
   var screen = this.screen = [];
   for (var y = 0; y < 48; ++y) {
     var row = [];
@@ -10,13 +11,15 @@ var SixtyNineClimbing = function () {
     }
     screen.push(row);
   }
-  this.createScreen();
+  this.playerX = 100;
+  this.playerY = 100;
+  this.createScreen(this.playerX, this.playerY);
 };
 // for node.js, not for CommonJS
 module.exports = SixtyNineClimbing;
 
-// ,;-+/([{&#
-//  perl -le '$i = 255; for (0 .. 7) { print sprintf("%x", $i - $_ * 20); }'
+// . : - = + * # $
+// perl -le '$i = 255; for (0 .. 7) { print sprintf("%x", $i - $_ * 22); }'
 SixtyNineClimbing.getStrFromValue = function (value) {
   if (value > 0.75)         { return '{#656565-fg}.{/#656565-fg}';
   } else if (value > 0.5)   { return '{#7b7b7b-fg}:{/#7b7b7b-fg}';
@@ -29,15 +32,13 @@ SixtyNineClimbing.getStrFromValue = function (value) {
   } else { return '?'; }
 };
 
-SixtyNineClimbing.prototype.createScreen = function () {
+SixtyNineClimbing.prototype.createScreen = function (px, py) {
   var screen = this.screen;
   var noise = perlin.noise;
-  noise.seed(this.i++);
-
   var getStrFromValue = SixtyNineClimbing.getStrFromValue;
   for (var y = 0; y < 48; ++y) {
     for (var x = 0; x < 54; ++x) {
-      screen[y][x] = getStrFromValue(noise.simplex2(x / 20, y / 10));
+      screen[y][x] = getStrFromValue(noise.simplex2((x + px) / 20, (y + py) / 10));
     }
   }
 };
@@ -46,7 +47,9 @@ SixtyNineClimbing.prototype.getScreen = function () {
   return this.screen;
 };
 
-SixtyNineClimbing.prototype.point = function () {
-  this.createScreen();
+SixtyNineClimbing.prototype.point = function (x, y) {
+  this.playerX += (x < 27 ? -1 : 1);
+  this.playerY += (y < 24 ? -1 : 1);
+  this.createScreen(this.playerX, this.playerY);
   return true;
 };

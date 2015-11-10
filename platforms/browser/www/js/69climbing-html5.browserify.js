@@ -11,37 +11,71 @@ SixtyNineClimbing.prototype.initialCanvas = function (element) {
 
   SixtyNineClimbing.ins = this;
   var game = this;
+  var lastPoint = [];
   this.canvasElement.addEventListener('touchstart', function (e) {
     e.preventDefault();
     var rect = e.target.getBoundingClientRect();
-    var point = game.getPointFromHTML(e.changedTouches[0].clientX - rect.left, e.changedTouches[0].clientY - rect.top, 'start');
-    if (game.point(point[0], point[1])) {
-      game.draw();
-    }
+    var point = game.getPointFromHTML(e.changedTouches[0].clientX - rect.left, e.changedTouches[0].clientY - rect.top);
+    lastPoint[0] = point[0];
+    lastPoint[1] = point[1];
     game.touchNow = point;
+    game.active = true;
   });
 
   this.canvasElement.addEventListener('touchmove', function (e) {
     e.preventDefault();
     var rect = e.target.getBoundingClientRect();
-    var point = game.getPointFromHTML(e.changedTouches[0].clientX - rect.left, e.changedTouches[0].clientY - rect.top, 'move');
+    var point = game.getPointFromHTML(e.changedTouches[0].clientX - rect.left, e.changedTouches[0].clientY - rect.top);
     if (game.touchNow[0] === point[0] && game.touchNow[1] === point[1]) {
       // nothing
-
-    } else if (game.point(point[0], point[1])) {
-      game.draw();
+    } else {
+      lastPoint[0] = point[0];
+      lastPoint[1] = point[1];
     }
     game.touchNow = point;
+  });
+
+  this.canvasElement.addEventListener('touchend', function (e) {
+    e.preventDefault();
+    var rect = e.target.getBoundingClientRect();
+    var point = game.getPointFromHTML(e.changedTouches[0].clientX - rect.left, e.changedTouches[0].clientY - rect.top);
+    lastPoint[0] = point[0];
+    lastPoint[1] = point[1];
+    game.touchNow = point;
+    game.active = false;
   });
 
   this.canvasElement.addEventListener('mousedown', function (e) {
     e.preventDefault();
     var rect = e.target.getBoundingClientRect();
     var point = game.getPointFromHTML(e.clientX - rect.left, e.clientY - rect.top);
-    if (game.point(point[0], point[1])) {
+    lastPoint[0] = point[0];
+    lastPoint[1] = point[1];
+    game.active = true;
+  });
+
+  this.canvasElement.addEventListener('mousemove', function (e) {
+    e.preventDefault();
+    var rect = e.target.getBoundingClientRect();
+    var point = game.getPointFromHTML(e.clientX - rect.left, e.clientY - rect.top);
+    lastPoint[0] = point[0];
+    lastPoint[1] = point[1];
+  });
+
+  this.canvasElement.addEventListener('mouseup', function (e) {
+    e.preventDefault();
+    var rect = e.target.getBoundingClientRect();
+    var point = game.getPointFromHTML(e.clientX - rect.left, e.clientY - rect.top);
+    lastPoint[0] = point[0];
+    lastPoint[1] = point[1];
+    game.active = false;
+  });
+
+  this.animationInterval = window.setInterval(function () {
+    if (game.active && game.point(lastPoint[0], lastPoint[1])) {
       game.draw();
     }
-  });
+  }, 250);
 
   window.addEventListener('resize', function() {
     if (game.resizeTimer) {
@@ -51,7 +85,6 @@ SixtyNineClimbing.prototype.initialCanvas = function (element) {
       game.resizeCanvas();
     }, 100);
   });
-
 };
 
 SixtyNineClimbing.FONT_MAP_SIZE = 50; // font map is for pre-rendering area, 50 x 50 is reserved in the default
@@ -122,15 +155,8 @@ SixtyNineClimbing.prototype.resizeCanvas = function () {
   this.draw(true);
 };
 
-SixtyNineClimbing.prototype.getPointFromHTML = function (x, y, mode) {
+SixtyNineClimbing.prototype.getPointFromHTML = function (x, y) {
   var px = x, py = y;
-  if (mode === 'start') {
-    this.touchStart = [ x, y ];
-  } else if (mode === 'move' ) { // swiping is 1/2 speed
-    var touch_start = this.touchStart;
-    px = (touch_start[0] + x) / 2;
-    py = (touch_start[1] + y) / 2;
-  }
   var mx = Math.floor(px * this.devicePixelRatio / this.fontX), my = Math.floor(py * this.devicePixelRatio / this.fontY);
   return [ mx, my ];
 };
@@ -222,7 +248,8 @@ SixtyNineClimbing.prototype.draw = function (initial) {
 var perlin = require('./perlin');
 
 var SixtyNineClimbing = function () {
-  this.i = 0;
+  perlin.noise.seed(Math.random());
+
   var screen = this.screen = [];
   for (var y = 0; y < 48; ++y) {
     var row = [];
@@ -231,13 +258,15 @@ var SixtyNineClimbing = function () {
     }
     screen.push(row);
   }
-  this.createScreen();
+  this.playerX = 100;
+  this.playerY = 100;
+  this.createScreen(this.playerX, this.playerY);
 };
 // for node.js, not for CommonJS
 module.exports = SixtyNineClimbing;
 
-// ,;-+/([{&#
-//  perl -le '$i = 255; for (0 .. 7) { print sprintf("%x", $i - $_ * 20); }'
+// . : - = + * # $
+// perl -le '$i = 255; for (0 .. 7) { print sprintf("%x", $i - $_ * 22); }'
 SixtyNineClimbing.getStrFromValue = function (value) {
   if (value > 0.75)         { return '{#656565-fg}.{/#656565-fg}';
   } else if (value > 0.5)   { return '{#7b7b7b-fg}:{/#7b7b7b-fg}';
@@ -250,15 +279,13 @@ SixtyNineClimbing.getStrFromValue = function (value) {
   } else { return '?'; }
 };
 
-SixtyNineClimbing.prototype.createScreen = function () {
+SixtyNineClimbing.prototype.createScreen = function (px, py) {
   var screen = this.screen;
   var noise = perlin.noise;
-  noise.seed(this.i++);
-
   var getStrFromValue = SixtyNineClimbing.getStrFromValue;
   for (var y = 0; y < 48; ++y) {
     for (var x = 0; x < 54; ++x) {
-      screen[y][x] = getStrFromValue(noise.simplex2(x / 20, y / 10));
+      screen[y][x] = getStrFromValue(noise.simplex2((x + px) / 20, (y + py) / 10));
     }
   }
 };
@@ -267,8 +294,10 @@ SixtyNineClimbing.prototype.getScreen = function () {
   return this.screen;
 };
 
-SixtyNineClimbing.prototype.point = function () {
-  this.createScreen();
+SixtyNineClimbing.prototype.point = function (x, y) {
+  this.playerX += (x < 27 ? -1 : 1);
+  this.playerY += (y < 24 ? -1 : 1);
+  this.createScreen(this.playerX, this.playerY);
   return true;
 };
 

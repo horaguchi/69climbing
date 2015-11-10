@@ -10,37 +10,71 @@ SixtyNineClimbing.prototype.initialCanvas = function (element) {
 
   SixtyNineClimbing.ins = this;
   var game = this;
+  var lastPoint = [];
   this.canvasElement.addEventListener('touchstart', function (e) {
     e.preventDefault();
     var rect = e.target.getBoundingClientRect();
-    var point = game.getPointFromHTML(e.changedTouches[0].clientX - rect.left, e.changedTouches[0].clientY - rect.top, 'start');
-    if (game.point(point[0], point[1])) {
-      game.draw();
-    }
+    var point = game.getPointFromHTML(e.changedTouches[0].clientX - rect.left, e.changedTouches[0].clientY - rect.top);
+    lastPoint[0] = point[0];
+    lastPoint[1] = point[1];
     game.touchNow = point;
+    game.active = true;
   });
 
   this.canvasElement.addEventListener('touchmove', function (e) {
     e.preventDefault();
     var rect = e.target.getBoundingClientRect();
-    var point = game.getPointFromHTML(e.changedTouches[0].clientX - rect.left, e.changedTouches[0].clientY - rect.top, 'move');
+    var point = game.getPointFromHTML(e.changedTouches[0].clientX - rect.left, e.changedTouches[0].clientY - rect.top);
     if (game.touchNow[0] === point[0] && game.touchNow[1] === point[1]) {
       // nothing
-
-    } else if (game.point(point[0], point[1])) {
-      game.draw();
+    } else {
+      lastPoint[0] = point[0];
+      lastPoint[1] = point[1];
     }
     game.touchNow = point;
+  });
+
+  this.canvasElement.addEventListener('touchend', function (e) {
+    e.preventDefault();
+    var rect = e.target.getBoundingClientRect();
+    var point = game.getPointFromHTML(e.changedTouches[0].clientX - rect.left, e.changedTouches[0].clientY - rect.top);
+    lastPoint[0] = point[0];
+    lastPoint[1] = point[1];
+    game.touchNow = point;
+    game.active = false;
   });
 
   this.canvasElement.addEventListener('mousedown', function (e) {
     e.preventDefault();
     var rect = e.target.getBoundingClientRect();
     var point = game.getPointFromHTML(e.clientX - rect.left, e.clientY - rect.top);
-    if (game.point(point[0], point[1])) {
+    lastPoint[0] = point[0];
+    lastPoint[1] = point[1];
+    game.active = true;
+  });
+
+  this.canvasElement.addEventListener('mousemove', function (e) {
+    e.preventDefault();
+    var rect = e.target.getBoundingClientRect();
+    var point = game.getPointFromHTML(e.clientX - rect.left, e.clientY - rect.top);
+    lastPoint[0] = point[0];
+    lastPoint[1] = point[1];
+  });
+
+  this.canvasElement.addEventListener('mouseup', function (e) {
+    e.preventDefault();
+    var rect = e.target.getBoundingClientRect();
+    var point = game.getPointFromHTML(e.clientX - rect.left, e.clientY - rect.top);
+    lastPoint[0] = point[0];
+    lastPoint[1] = point[1];
+    game.active = false;
+  });
+
+  this.animationInterval = window.setInterval(function () {
+    if (game.active && game.point(lastPoint[0], lastPoint[1])) {
       game.draw();
     }
-  });
+  }, 300);
 
   window.addEventListener('resize', function() {
     if (game.resizeTimer) {
@@ -50,7 +84,6 @@ SixtyNineClimbing.prototype.initialCanvas = function (element) {
       game.resizeCanvas();
     }, 100);
   });
-
 };
 
 SixtyNineClimbing.FONT_MAP_SIZE = 50; // font map is for pre-rendering area, 50 x 50 is reserved in the default
@@ -121,15 +154,8 @@ SixtyNineClimbing.prototype.resizeCanvas = function () {
   this.draw(true);
 };
 
-SixtyNineClimbing.prototype.getPointFromHTML = function (x, y, mode) {
+SixtyNineClimbing.prototype.getPointFromHTML = function (x, y) {
   var px = x, py = y;
-  if (mode === 'start') {
-    this.touchStart = [ x, y ];
-  } else if (mode === 'move' ) { // swiping is 1/2 speed
-    var touch_start = this.touchStart;
-    px = (touch_start[0] + x) / 2;
-    py = (touch_start[1] + y) / 2;
-  }
   var mx = Math.floor(px * this.devicePixelRatio / this.fontX), my = Math.floor(py * this.devicePixelRatio / this.fontY);
   return [ mx, my ];
 };
