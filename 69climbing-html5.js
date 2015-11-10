@@ -10,7 +10,7 @@ SixtyNineClimbing.prototype.initialCanvas = function (element) {
 
   SixtyNineClimbing.ins = this;
   var game = this;
-  var lastPoint = [];
+  var lastPoint = game.lastPoint = [];
   this.canvasElement.addEventListener('touchstart', function (e) {
     e.preventDefault();
     var rect = e.target.getBoundingClientRect();
@@ -19,6 +19,7 @@ SixtyNineClimbing.prototype.initialCanvas = function (element) {
     lastPoint[1] = point[1];
     game.touchNow = point;
     game.active = true;
+    game.startAnimation();
   });
 
   this.canvasElement.addEventListener('touchmove', function (e) {
@@ -51,6 +52,7 @@ SixtyNineClimbing.prototype.initialCanvas = function (element) {
     lastPoint[0] = point[0];
     lastPoint[1] = point[1];
     game.active = true;
+    game.startAnimation();
   });
 
   this.canvasElement.addEventListener('mousemove', function (e) {
@@ -70,11 +72,29 @@ SixtyNineClimbing.prototype.initialCanvas = function (element) {
     game.active = false;
   });
 
-  this.animationInterval = window.setInterval(function () {
-    if (game.active && game.point(lastPoint[0], lastPoint[1])) {
+  this.canvasElement.addEventListener('mouseleave', function (e) {
+    e.preventDefault();
+    game.active = false;
+  });
+
+  window.addEventListener("keypress", function (e) {
+    e.preventDefault();
+    var key = String.fromCharCode(e.keyCode);
+    // @ is (27, 30)
+    var x = 27, y = 30;
+    if (key === "w" || key === "k") {
+      y = 29;
+    } else if (key === "a" || key === "h") {
+      x = 26;
+    } else if (key === "s" || key === "j") {
+      y = 31;
+    } else if (key === "d" || key === "l") {
+      x = 28;
+    }
+    if (game.point(x, y)) {
       game.draw();
     }
-  }, 300);
+  }, false);
 
   window.addEventListener('resize', function() {
     if (game.resizeTimer) {
@@ -84,6 +104,22 @@ SixtyNineClimbing.prototype.initialCanvas = function (element) {
       game.resizeCanvas();
     }, 100);
   });
+};
+
+SixtyNineClimbing.prototype.startAnimation = function () {
+  var lastPoint = this.lastPoint;
+  var game = this;
+  if (game.active && game.point(lastPoint[0], lastPoint[1])) {
+    game.draw();
+  }
+  if (this.animationInterval) {
+    window.clearInterval(this.animationInterval);
+  }
+  this.animationInterval = window.setInterval(function () {
+    if (game.active && game.point(lastPoint[0], lastPoint[1])) {
+      game.draw();
+    }
+  }, 300);
 };
 
 SixtyNineClimbing.FONT_MAP_SIZE = 50; // font map is for pre-rendering area, 50 x 50 is reserved in the default
@@ -111,13 +147,13 @@ SixtyNineClimbing.prototype.resizeCanvas = function () {
   this.canvasElement.style.width  = Math.round(this.fontX * 54 / device_pixel_ratio) + 'px';
   this.canvasElement.style.height = Math.round(this.fontY * 48 / device_pixel_ratio) + 'px';
   this.canvasContext = this.canvasElement.getContext("2d");
-  this.canvasContext.fillStyle = 'black';
+  this.canvasContext.fillStyle = 'white';
 
   this.fontCanvasElement = document.createElement('canvas');
   this.fontCanvasElement.setAttribute('width',  this.fontX);
   this.fontCanvasElement.setAttribute('height', this.fontY);
   this.fontCanvasContext = this.fontCanvasElement.getContext("2d");
-  this.fontCanvasContext.fillStyle = this.fillStyle = 'white';
+  this.fontCanvasContext.fillStyle = this.fillStyle = 'black';
   this.fontCanvasContext.font = this.fontY + 'px Monospace';
   this.fontCanvasContext.textAlign = 'center';
   this.fontCanvasContext.textBaseline = 'middle';
@@ -128,7 +164,7 @@ SixtyNineClimbing.prototype.resizeCanvas = function () {
   this.fontMapCanvasElement.setAttribute('width',  this.fontX * SixtyNineClimbing.FONT_MAP_SIZE);
   this.fontMapCanvasElement.setAttribute('height', this.fontY * SixtyNineClimbing.FONT_MAP_SIZE);
   this.fontMapCanvasContext = this.fontMapCanvasElement.getContext("2d");
-  this.fontMapCanvasContext.fillStyle = 'black';
+  this.fontMapCanvasContext.fillStyle = 'white';
   this.fontMapCanvasContext.fillRect(0, 0, this.fontX * SixtyNineClimbing.FONT_MAP_SIZE, this.fontY * SixtyNineClimbing.FONT_MAP_SIZE);
 
   // for full width
@@ -136,7 +172,7 @@ SixtyNineClimbing.prototype.resizeCanvas = function () {
   this.fontFWCanvasElement.setAttribute('width',  this.fontX * 2);
   this.fontFWCanvasElement.setAttribute('height', this.fontY);
   this.fontFWCanvasContext = this.fontFWCanvasElement.getContext("2d");
-  this.fontFWCanvasContext.fillStyle = this.fillStyle = 'white';
+  this.fontFWCanvasContext.fillStyle = this.fillStyle = 'black';
   this.fontFWCanvasContext.font = this.fontY + 'px Monospace';
   this.fontFWCanvasContext.textAlign = 'center';
   this.fontFWCanvasContext.textBaseline = 'middle';
@@ -147,7 +183,7 @@ SixtyNineClimbing.prototype.resizeCanvas = function () {
   this.fontFWMapCanvasElement.setAttribute('width',  this.fontX * SixtyNineClimbing.FONT_MAP_SIZE * 2);
   this.fontFWMapCanvasElement.setAttribute('height', this.fontY * SixtyNineClimbing.FONT_MAP_SIZE);
   this.fontFWMapCanvasContext = this.fontFWMapCanvasElement.getContext("2d");
-  this.fontFWMapCanvasContext.fillStyle = 'black';
+  this.fontFWMapCanvasContext.fillStyle = 'white';
   this.fontFWMapCanvasContext.fillRect(0, 0, this.fontX * SixtyNineClimbing.FONT_MAP_SIZE * 2, this.fontY * SixtyNineClimbing.FONT_MAP_SIZE);
 
   // initial drawing
@@ -230,8 +266,8 @@ SixtyNineClimbing.prototype.draw = function (initial) {
         }
         str = colors[2];
       } else {
-        if (this.fillStyle !== 'white') {
-          this.fillStyle = 'white';
+        if (this.fillStyle !== 'black') {
+          this.fillStyle = 'black';
         }
       }
       var dx = dw * (full_width ? x - 1 : x), dy = dh * y;

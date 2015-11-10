@@ -11,7 +11,7 @@ SixtyNineClimbing.prototype.initialCanvas = function (element) {
 
   SixtyNineClimbing.ins = this;
   var game = this;
-  var lastPoint = [];
+  var lastPoint = game.lastPoint = [];
   this.canvasElement.addEventListener('touchstart', function (e) {
     e.preventDefault();
     var rect = e.target.getBoundingClientRect();
@@ -20,6 +20,7 @@ SixtyNineClimbing.prototype.initialCanvas = function (element) {
     lastPoint[1] = point[1];
     game.touchNow = point;
     game.active = true;
+    game.startAnimation();
   });
 
   this.canvasElement.addEventListener('touchmove', function (e) {
@@ -52,6 +53,7 @@ SixtyNineClimbing.prototype.initialCanvas = function (element) {
     lastPoint[0] = point[0];
     lastPoint[1] = point[1];
     game.active = true;
+    game.startAnimation();
   });
 
   this.canvasElement.addEventListener('mousemove', function (e) {
@@ -71,11 +73,29 @@ SixtyNineClimbing.prototype.initialCanvas = function (element) {
     game.active = false;
   });
 
-  this.animationInterval = window.setInterval(function () {
-    if (game.active && game.point(lastPoint[0], lastPoint[1])) {
+  this.canvasElement.addEventListener('mouseleave', function (e) {
+    e.preventDefault();
+    game.active = false;
+  });
+
+  window.addEventListener("keypress", function (e) {
+    e.preventDefault();
+    var key = String.fromCharCode(e.keyCode);
+    // @ is (27, 30)
+    var x = 27, y = 30;
+    if (key === "w" || key === "k") {
+      y = 29;
+    } else if (key === "a" || key === "h") {
+      x = 26;
+    } else if (key === "s" || key === "j") {
+      y = 31;
+    } else if (key === "d" || key === "l") {
+      x = 28;
+    }
+    if (game.point(x, y)) {
       game.draw();
     }
-  }, 250);
+  }, false);
 
   window.addEventListener('resize', function() {
     if (game.resizeTimer) {
@@ -85,6 +105,22 @@ SixtyNineClimbing.prototype.initialCanvas = function (element) {
       game.resizeCanvas();
     }, 100);
   });
+};
+
+SixtyNineClimbing.prototype.startAnimation = function () {
+  var lastPoint = this.lastPoint;
+  var game = this;
+  if (game.active && game.point(lastPoint[0], lastPoint[1])) {
+    game.draw();
+  }
+  if (this.animationInterval) {
+    window.clearInterval(this.animationInterval);
+  }
+  this.animationInterval = window.setInterval(function () {
+    if (game.active && game.point(lastPoint[0], lastPoint[1])) {
+      game.draw();
+    }
+  }, 300);
 };
 
 SixtyNineClimbing.FONT_MAP_SIZE = 50; // font map is for pre-rendering area, 50 x 50 is reserved in the default
@@ -112,13 +148,13 @@ SixtyNineClimbing.prototype.resizeCanvas = function () {
   this.canvasElement.style.width  = Math.round(this.fontX * 54 / device_pixel_ratio) + 'px';
   this.canvasElement.style.height = Math.round(this.fontY * 48 / device_pixel_ratio) + 'px';
   this.canvasContext = this.canvasElement.getContext("2d");
-  this.canvasContext.fillStyle = 'black';
+  this.canvasContext.fillStyle = 'white';
 
   this.fontCanvasElement = document.createElement('canvas');
   this.fontCanvasElement.setAttribute('width',  this.fontX);
   this.fontCanvasElement.setAttribute('height', this.fontY);
   this.fontCanvasContext = this.fontCanvasElement.getContext("2d");
-  this.fontCanvasContext.fillStyle = this.fillStyle = 'white';
+  this.fontCanvasContext.fillStyle = this.fillStyle = 'black';
   this.fontCanvasContext.font = this.fontY + 'px Monospace';
   this.fontCanvasContext.textAlign = 'center';
   this.fontCanvasContext.textBaseline = 'middle';
@@ -129,7 +165,7 @@ SixtyNineClimbing.prototype.resizeCanvas = function () {
   this.fontMapCanvasElement.setAttribute('width',  this.fontX * SixtyNineClimbing.FONT_MAP_SIZE);
   this.fontMapCanvasElement.setAttribute('height', this.fontY * SixtyNineClimbing.FONT_MAP_SIZE);
   this.fontMapCanvasContext = this.fontMapCanvasElement.getContext("2d");
-  this.fontMapCanvasContext.fillStyle = 'black';
+  this.fontMapCanvasContext.fillStyle = 'white';
   this.fontMapCanvasContext.fillRect(0, 0, this.fontX * SixtyNineClimbing.FONT_MAP_SIZE, this.fontY * SixtyNineClimbing.FONT_MAP_SIZE);
 
   // for full width
@@ -137,7 +173,7 @@ SixtyNineClimbing.prototype.resizeCanvas = function () {
   this.fontFWCanvasElement.setAttribute('width',  this.fontX * 2);
   this.fontFWCanvasElement.setAttribute('height', this.fontY);
   this.fontFWCanvasContext = this.fontFWCanvasElement.getContext("2d");
-  this.fontFWCanvasContext.fillStyle = this.fillStyle = 'white';
+  this.fontFWCanvasContext.fillStyle = this.fillStyle = 'black';
   this.fontFWCanvasContext.font = this.fontY + 'px Monospace';
   this.fontFWCanvasContext.textAlign = 'center';
   this.fontFWCanvasContext.textBaseline = 'middle';
@@ -148,7 +184,7 @@ SixtyNineClimbing.prototype.resizeCanvas = function () {
   this.fontFWMapCanvasElement.setAttribute('width',  this.fontX * SixtyNineClimbing.FONT_MAP_SIZE * 2);
   this.fontFWMapCanvasElement.setAttribute('height', this.fontY * SixtyNineClimbing.FONT_MAP_SIZE);
   this.fontFWMapCanvasContext = this.fontFWMapCanvasElement.getContext("2d");
-  this.fontFWMapCanvasContext.fillStyle = 'black';
+  this.fontFWMapCanvasContext.fillStyle = 'white';
   this.fontFWMapCanvasContext.fillRect(0, 0, this.fontX * SixtyNineClimbing.FONT_MAP_SIZE * 2, this.fontY * SixtyNineClimbing.FONT_MAP_SIZE);
 
   // initial drawing
@@ -231,8 +267,8 @@ SixtyNineClimbing.prototype.draw = function (initial) {
         }
         str = colors[2];
       } else {
-        if (this.fillStyle !== 'white') {
-          this.fillStyle = 'white';
+        if (this.fillStyle !== 'black') {
+          this.fillStyle = 'black';
         }
       }
       var dx = dw * (full_width ? x - 1 : x), dy = dh * y;
@@ -260,32 +296,44 @@ var SixtyNineClimbing = function () {
   }
   this.playerX = 100;
   this.playerY = 100;
-  this.createScreen(this.playerX, this.playerY);
+  this.updateScreen(this.playerX, this.playerY);
 };
 // for node.js, not for CommonJS
 module.exports = SixtyNineClimbing;
 
 // . : - = + * # $
 // perl -le '$i = 255; for (0 .. 7) { print sprintf("%x", $i - $_ * 22); }'
-SixtyNineClimbing.getStrFromValue = function (value) {
-  if (value > 0.75)         { return '{#656565-fg}.{/#656565-fg}';
-  } else if (value > 0.5)   { return '{#7b7b7b-fg}:{/#7b7b7b-fg}';
-  } else if (value > 0.25)  { return '{#919191-fg}-{/#919191-fg}';
-  } else if (value > 0)     { return '{#a7a7a7-fg}={/#a7a7a7-fg}';
-  } else if (value > -0.25) { return '{#bdbdbd-fg}+{/#bdbdbd-fg}';
-  } else if (value > -0.5)  { return '{#d3d3d3-fg}*{/#d3d3d3-fg}';
-  } else if (value > -0.75) { return '{#e9e9e9-fg}#{/#e9e9e9-fg}';
-  } else if (value > -1)    { return '{#ffffff-fg}${/#ffffff-fg}';
-  } else { return '?'; }
+SixtyNineClimbing.getStrFromValue = function (value, player) {
+  if (player) {
+    if (value > 0.75)         { return '{#ff0000-fg}@{/#ff0000-fg}';
+    } else if (value > 0.5)   { return '{#ff0000-fg}@{/#ff0000-fg}';
+    } else if (value > 0.25)  { return '{#ff0000-fg}@{/#ff0000-fg}';
+    } else if (value > 0)     { return '{#ff0000-fg}@{/#ff0000-fg}';
+    } else if (value > -0.25) { return '{#ff0000-fg}@{/#ff0000-fg}';
+    } else if (value > -0.5)  { return '{#ff0000-fg}@{/#ff0000-fg}';
+    } else if (value > -0.75) { return '{#ff0000-fg}@{/#ff0000-fg}';
+    } else if (value > -1)    { return '{#ff0000-fg}@{/#ff0000-fg}';
+    } else { return '?'; }
+  } else {
+    if (value > 0.75)         { return '{#8c8c8c-fg}.{/#8c8c8c-fg}';
+    } else if (value > 0.5)   { return '{#787878-fg}:{/#787878-fg}';
+    } else if (value > 0.25)  { return '{#646464-fg}-{/#646464-fg}';
+    } else if (value > 0)     { return '{#505050-fg}={/#505050-fg}';
+    } else if (value > -0.25) { return '{#3c3c3c-fg}+{/#3c3c3c-fg}';
+    } else if (value > -0.5)  { return '{#282828-fg}*{/#282828-fg}';
+    } else if (value > -0.75) { return '{#141414-fg}#{/#141414-fg}';
+    } else if (value > -1)    { return '{#000000-fg}${/#000000-fg}';
+    } else { return '?'; }
+  }
 };
 
-SixtyNineClimbing.prototype.createScreen = function (px, py) {
+SixtyNineClimbing.prototype.updateScreen = function (px, py) {
   var screen = this.screen;
   var noise = perlin.noise;
   var getStrFromValue = SixtyNineClimbing.getStrFromValue;
   for (var y = 0; y < 48; ++y) {
     for (var x = 0; x < 54; ++x) {
-      screen[y][x] = getStrFromValue(noise.simplex2((x + px) / 20, (y + py) / 10));
+      screen[y][x] = getStrFromValue(noise.simplex2((x + px) / 16, (y + py) / 8), (x === 27 && y === 30));
     }
   }
 };
@@ -295,9 +343,24 @@ SixtyNineClimbing.prototype.getScreen = function () {
 };
 
 SixtyNineClimbing.prototype.point = function (x, y) {
-  this.playerX += (x < 27 ? -1 : 1);
-  this.playerY += (y < 24 ? -1 : 1);
-  this.createScreen(this.playerX, this.playerY);
+  var sx = x - 27, sy = y - 30;
+  var x_y = Math.abs(sx) - Math.abs(sy);
+  if (x_y === 0) {
+    return false;
+  } else if (x_y < 0) {
+    if (sy < 0) {
+      --this.playerY;
+    } else if (sy > 0) {
+      ++this.playerY;
+    }
+  } else if (x_y > 0) {
+    if (sx < 0) {
+      --this.playerX;
+    } else if (sx > 0) {
+      ++this.playerX;
+    }
+  }
+  this.updateScreen(this.playerX, this.playerY);
   return true;
 };
 
