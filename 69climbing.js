@@ -190,7 +190,6 @@ SixtyNineClimbing.prototype.canMoveEasy = function (px, py) {
   var base_plus = Math.abs(base_y) / SixtyNineClimbing_ADD_DIFFICULTY;
   var base_noise_value = noise.simplex2(base_x / (SixtyNineClimbing_X_DIFFICULTY + base_plus * 2), base_y / (SixtyNineClimbing_Y_DIFFICULTY + base_plus));
   var base_depth = SixtyNineClimbing.getDepthFromValue(base_noise_value, SixtyNineClimbing.isRockFromY(base_y));
-  return true;
   return next_depth === 0 || base_depth < next_depth;
 };
 
