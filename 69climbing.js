@@ -13,6 +13,8 @@ var SixtyNineClimbing = function () {
   }
   this.playerX = 0;
   this.playerY = 0;
+  this.stamina = 1;
+  this.staminaMax = 1;
   this.updateScreen(this.playerX, this.playerY);
 };
 // for node.js, not for CommonJS
@@ -92,7 +94,7 @@ SixtyNineClimbing.prototype.updateScreen = function (px, py) {
   var screen = this.screen;
   var noise = perlin.noise;
   var getStrFromValue = SixtyNineClimbing.getStrFromValue;
-  for (var y = 0; y < 48; ++y) {
+  for (var y = 0; y < 47; ++y) {
     var is_rock = SixtyNineClimbing.isRockFromY(y + py);
     for (var x = 0; x < 54; ++x) {
       if (x === 27 && y === 30) {
@@ -107,7 +109,19 @@ SixtyNineClimbing.prototype.updateScreen = function (px, py) {
 };
 
 SixtyNineClimbing.prototype.getScreen = function () {
-  return this.screen;
+  var stamina_str = "STAMINA: ";
+  var stamina = this.stamina;
+  var stamina_max = this.staminaMax;
+  for (var i = 0; i < 10; ++i) {
+    if (i < stamina) {
+      stamina_str += "[*]";
+    } else if (i < stamina_max) {
+      stamina_str += "[ ]";
+    } else {
+      stamina_str += "   ";
+    }
+  }
+  return [ stamina_str.split("")  ].concat(this.screen);
 };
 
 SixtyNineClimbing.prototype.point = function (x, y) {
