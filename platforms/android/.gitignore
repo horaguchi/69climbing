@@ -11,6 +11,9 @@ ant-gen
 gen
 out
 # Gradle builds
+/CordovaLib/build
 /build/generated
 /build/intermediates
 /build/tmp
+/build/outputs/apk/android-release.apk
+*-release-*
