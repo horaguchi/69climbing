@@ -306,7 +306,7 @@ module.exports = SixtyNineClimbing;
 
 var SixtyNineClimbing_X_DIFFICULTY = 10;    // less is harder
 var SixtyNineClimbing_Y_DIFFICULTY = 5;     // less is harder
-var SixtyNineClimbing_ADD_DIFFICULTY = 300; // less is harder
+var SixtyNineClimbing_ADD_DIFFICULTY = 350; // less is harder
 
 var SixtyNineClimbing_PLAYER_X = 27;    // less is harder
 var SixtyNineClimbing_PLAYER_Y = 30;     // less is harder
@@ -377,20 +377,20 @@ SixtyNineClimbing.LEVEL = [
   [   16, 0 ],
   [   66, 2 ], //   10
   [   76, 0 ],
-  [  125, 3 ], //   25
-  [  150, 0 ],
-  [  200, 4 ], //   50
-  [  250, 0 ],
+  [  125, 3 ], //   20
+  [  145, 0 ],
+  [  200, 4 ], //   40
+  [  240, 0 ],
   [  300, 5 ], //   75
   [  375, 0 ],
   [  425, 6 ], //  100
   [  525, 0 ],
-  [  575, 7 ], //  200
-  [  775, 0 ],
-  [  850, 8 ], //  500
-  [ 1350, 0 ],
-  [ 1400, 9 ], // 1000
-  [ 2400, 0 ]
+  [  575, 7 ], //  150
+  [  725, 0 ],
+  [  800, 8 ], //  250
+  [ 1050, 0 ],
+  [ 1100, 9 ], //  500
+  [ 1600, 0 ]
 ];
 SixtyNineClimbing.isRockFromY_cache = {};
 SixtyNineClimbing.isRockFromY = function (y) {
@@ -458,7 +458,7 @@ SixtyNineClimbing.prototype.getScreen = function () {
       stamina_str += "   ";
     }
   }
-  return [ (stamina_str + "       STAGE: " + this.stageMax).split("") ].concat(this.screen);
+  return [ (stamina_str + (1600 + SixtyNineClimbing_PLAYER_Y < Math.abs(this.positionY) ? "     GAME CLEAR" : "       STAGE: " + this.stageMax)).split("") ].concat(this.screen);
 };
 
 SixtyNineClimbing.prototype.canMoveEasy = function (px, py) {
@@ -473,6 +473,7 @@ SixtyNineClimbing.prototype.canMoveEasy = function (px, py) {
   var base_plus = Math.abs(base_y) / SixtyNineClimbing_ADD_DIFFICULTY;
   var base_noise_value = noise.simplex2(base_x / (SixtyNineClimbing_X_DIFFICULTY + base_plus * 2), base_y / (SixtyNineClimbing_Y_DIFFICULTY + base_plus));
   var base_depth = SixtyNineClimbing.getDepthFromValue(base_noise_value, SixtyNineClimbing.isRockFromY(base_y));
+  return true;
   return next_depth === 0 || base_depth < next_depth;
 };
 
