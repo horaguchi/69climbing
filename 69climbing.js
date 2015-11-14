@@ -15,10 +15,18 @@ var SixtyNineClimbing = function () {
   this.positionY = 0;
   this.stamina = 1;
   this.staminaMax = 1;
+  this.stageMax = 0;
   this.updateScreen(this.positionX, this.positionY);
 };
 // for node.js, not for CommonJS
 module.exports = SixtyNineClimbing;
+
+var SixtyNineClimbing_X_DIFFICULTY = 10;    // less is harder
+var SixtyNineClimbing_Y_DIFFICULTY = 5;     // less is harder
+var SixtyNineClimbing_ADD_DIFFICULTY = 300; // less is harder
+
+var SixtyNineClimbing_PLAYER_X = 27;    // less is harder
+var SixtyNineClimbing_PLAYER_Y = 30;     // less is harder
 
 // . : - = + * # $
 // perl -le '$i = 255; for (0 .. 7) { print sprintf("%02x", $_ * 24); }' | tac
@@ -34,23 +42,23 @@ SixtyNineClimbing.getStrFromValue = function (value, rock, easy) {
     } else if (value > -1)    { return '{#aaffaa-fg}"{/#aaffaa-fg}';
     } else { return '?'; }
   } else if (easy) {
-    if (value > 0.75)         { return '{#fa00fa-fg}.{/#fa00fa-fg}';
-    } else if (value > 0.5)   { return '{#e100e1-fg}:{/#e100e1-fg}';
-    } else if (value > 0.25)  { return '{#c800c8-fg}-{/#c800c8-fg}';
-    } else if (value > 0)     { return '{#af00af-fg}={/#af00af-fg}';
-    } else if (value > -0.25) { return '{#960096-fg}+{/#960096-fg}';
-    } else if (value > -0.5)  { return '{#7d007d-fg}*{/#7d007d-fg}';
-    } else if (value > -0.75) { return '{#640064-fg}#{/#640064-fg}';
-    } else if (value > -1)    { return '{#4b004b-fg}${/#4b004b-fg}';
+    if (value > 0.75)         { return '{#ff00ff-fg}.{/#ff00ff-fg}';
+    } else if (value > 0.5)   { return '{#ff00ff-fg}:{/#ff00ff-fg}';
+    } else if (value > 0.25)  { return '{#ff00ff-fg}-{/#ff00ff-fg}';
+    } else if (value > 0)     { return '{#ff00ff-fg}={/#ff00ff-fg}';
+    } else if (value > -0.25) { return '{#ff00ff-fg}+{/#ff00ff-fg}';
+    } else if (value > -0.5)  { return '{#ff00ff-fg}*{/#ff00ff-fg}';
+    } else if (value > -0.75) { return '{#ff00ff-fg}#{/#ff00ff-fg}';
+    } else if (value > -1)    { return '{#ff00ff-fg}${/#ff00ff-fg}';
     } else { return '?'; }
   } else {
-    if (value > 0.75)         { return '{#afafaf-fg}.{/#afafaf-fg}';
-    } else if (value > 0.5)   { return '{#969696-fg}:{/#969696-fg}';
-    } else if (value > 0.25)  { return '{#7d7d7d-fg}-{/#7d7d7d-fg}';
-    } else if (value > 0)     { return '{#646464-fg}={/#646464-fg}';
-    } else if (value > -0.25) { return '{#4b4b4b-fg}+{/#4b4b4b-fg}';
-    } else if (value > -0.5)  { return '{#323232-fg}*{/#323232-fg}';
-    } else if (value > -0.75) { return '{#191919-fg}#{/#191919-fg}';
+    if (value > 0.75)         { return '{#000000-fg}.{/#000000-fg}';
+    } else if (value > 0.5)   { return '{#000000-fg}:{/#000000-fg}';
+    } else if (value > 0.25)  { return '{#000000-fg}-{/#000000-fg}';
+    } else if (value > 0)     { return '{#000000-fg}={/#000000-fg}';
+    } else if (value > -0.25) { return '{#000000-fg}+{/#000000-fg}';
+    } else if (value > -0.5)  { return '{#000000-fg}*{/#000000-fg}';
+    } else if (value > -0.75) { return '{#000000-fg}#{/#000000-fg}';
     } else if (value > -1)    { return '{#000000-fg}${/#000000-fg}';
     } else { return '?'; }
   }
@@ -125,10 +133,6 @@ SixtyNineClimbing.isRockFromY = function (y) {
   return result;
 };
 
-var SixtyNineClimbing_X_DIFFICULTY = 10;    // less is harder
-var SixtyNineClimbing_Y_DIFFICULTY = 5;     // less is harder
-var SixtyNineClimbing_ADD_DIFFICULTY = 350; // less is harder
-
 SixtyNineClimbing.prototype.updateScreen = function (px, py) {
   var screen = this.screen;
   var noise = perlin.noise;
@@ -143,9 +147,8 @@ SixtyNineClimbing.prototype.updateScreen = function (px, py) {
     var base_plus = Math.abs(y + py + 1) / SixtyNineClimbing_ADD_DIFFICULTY;
 
     for (var x = 0; x < 54; ++x) {
-      if (x === 27 && y === 30) {
+      if (x === SixtyNineClimbing_PLAYER_X && y === SixtyNineClimbing_PLAYER_Y) {
         screen[y][x] = '{#ff0000-fg}@{/#ff0000-fg}';
-        this.staminaMax = Math.max(current_rock, this.staminaMax);
       } else if ((y + py) > 35) {
         screen[y][x] = ' ';
       } else {
@@ -172,14 +175,14 @@ SixtyNineClimbing.prototype.getScreen = function () {
       stamina_str += "   ";
     }
   }
-  return [ stamina_str.split("")  ].concat(this.screen);
+  return [ (stamina_str + "       STAGE: " + this.stageMax).split("") ].concat(this.screen);
 };
 
 SixtyNineClimbing.prototype.canMoveEasy = function (px, py) {
   var noise = perlin.noise;
-  var next_x = px + 27, next_y = py + 30;
+  var next_x = px + SixtyNineClimbing_PLAYER_X, next_y = py + SixtyNineClimbing_PLAYER_Y;
   var base_x = next_x, base_y = next_y + 1;
-  
+
   var next_plus = Math.abs(next_y) / SixtyNineClimbing_ADD_DIFFICULTY;
   var next_noise_value = noise.simplex2(next_x / (SixtyNineClimbing_X_DIFFICULTY + next_plus * 2), next_y / (SixtyNineClimbing_Y_DIFFICULTY + next_plus));
   var next_depth = SixtyNineClimbing.getDepthFromValue(next_noise_value, SixtyNineClimbing.isRockFromY(next_y));
@@ -191,7 +194,7 @@ SixtyNineClimbing.prototype.canMoveEasy = function (px, py) {
 };
 
 SixtyNineClimbing.prototype.point = function (x, y) {
-  var sx = x - 27, sy = y - 30;
+  var sx = x - SixtyNineClimbing_PLAYER_X, sy = y - SixtyNineClimbing_PLAYER_Y;
   var x_y = Math.abs(sx) - Math.abs(sy);
   if (x_y === 0) {
     return false;
@@ -199,20 +202,58 @@ SixtyNineClimbing.prototype.point = function (x, y) {
     if (sy < 0) {
       if (this.canMoveEasy(this.positionX, this.positionY - 1)) {
         --this.positionY;
+        this.stageMax = Math.max(SixtyNineClimbing.isRockFromY(this.positionY + SixtyNineClimbing_PLAYER_Y), this.stageMax);
+        this.staminaMax = Math.max(Math.ceil(this.stageMax / 2), this.staminaMax);
+        this.stamina = this.staminaMax;
+      } else if (0 < this.stamina) {
+        --this.stamina;
+        --this.positionY;
+      } else {
+        if (this.canMoveEasy(this.positionX, this.positionY + 1)) {
+          this.stamina = this.staminaMax;
+        }
+        ++this.positionY; // if stamina is zero, you fall
       }
     } else if (sy > 0) {
       if (this.canMoveEasy(this.positionX, this.positionY + 1)) {
         ++this.positionY;
+        this.stamina = this.staminaMax;
+      } else if (0 < this.stamina) {
+        --this.stamina;
+        ++this.positionY;
+      } else {
+        if (this.canMoveEasy(this.positionX, this.positionY + 1)) {
+          this.stamina = this.staminaMax;
+        }
+        ++this.positionY; // if stamina is zero, you fall
       }
     }
   } else if (x_y > 0) {
     if (sx < 0) {
       if (this.canMoveEasy(this.positionX - 1, this.positionY)) {
         --this.positionX;
+        this.stamina = this.staminaMax;
+      } else if (0 < this.stamina) {
+        --this.stamina;
+        --this.positionX;
+      } else {
+        if (this.canMoveEasy(this.positionX, this.positionY + 1)) {
+          this.stamina = this.staminaMax;
+        }
+        ++this.positionY; // if stamina is zero, you fall
       }
     } else if (sx > 0) {
       if (this.canMoveEasy(this.positionX + 1, this.positionY)) {
         ++this.positionX;
+        this.stamina = this.staminaMax;
+      } else if (0 < this.stamina) {
+        --this.stamina;
+        ++this.positionX;
+      } else {
+        //if (this.canMoveEasy(this.positionX, this.positionY + 1)) { // already checked
+        //  this.stamina = this.staminaMax;
+        //}
+        ++this.positionY; // if stamina is zero, you fall
       }
     }
   }
