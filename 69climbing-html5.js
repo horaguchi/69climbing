@@ -119,7 +119,7 @@ SixtyNineClimbing.prototype.startAnimation = function () {
     if (game.active && game.point(lastPoint[0], lastPoint[1])) {
       game.draw();
     }
-  }, 300);
+  }, 200);
 };
 
 SixtyNineClimbing.FONT_MAP_SIZE = 50; // font map is for pre-rendering area, 50 x 50 is reserved in the default
